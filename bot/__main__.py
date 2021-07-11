@@ -18,9 +18,9 @@ from bot.helper.telegram_helper.message_utils import *
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper import button_build
-from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, torrent_search, delete, speedtest, usage, mediainfo, count, config, updates
+from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, torrent_search, delete, speedtest, usage, mediainfo, count
 
-now=datetime.now(pytz.timezone('Asia/Jakarta'))
+now=datetime.now(pytz.timezone('Asia/Kolkata'))
 
 
 def stats(update, context):
@@ -50,18 +50,18 @@ def stats(update, context):
 
 def start(update, context):
     start_string = f'''
-This bot can mirror all your links to Google Drive!
-Type /{BotCommands.HelpCommand} to get a list of available commands
+This bot can mirror all your nudes to Google Drive!
+Send your nudes to the bot to see how it works.
 '''
     buttons = button_build.ButtonMaker()
-    buttons.buildbutton("Repo", "https://github.com/breakdowns/slam-mirrorbot")
-    buttons.buildbutton("Support Group", "https://t.me/SlamMirrorSupport")
+    buttons.buildbutton("SAUCE OF BOT", "https://telegra.ph/file/9e6e5fad2cf1727de5ff6.jpg")
+    buttons.buildbutton("NO1 WILL HELP U", "https://t.me/LOL")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     uptime = get_readable_time((time.time() - botStartTime))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         if update.message.chat.type == "private" :
-            sendMessage(f"Hey I'm Alive 🙂\nSince: <code>{uptime}</code>", context.bot, update)
+            sendMessage(f"WASSUP BISH 🙈\nSince: <code>{uptime}</code>", context.bot, update)
         else :
             update.effective_message.reply_photo(IMAGE_URL, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
     else :
@@ -135,17 +135,11 @@ def bot_help(update, context):
 
 /{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports
 
-/{BotCommands.ConfigMenuCommand}: Get Info Menu about bot config (Owner Only)
-
-/{BotCommands.UpdateCommand}: Update Bot from Upstream Repo (Owner Only)
-
 /{BotCommands.UsageCommand}: To see Heroku Dyno Stats (Owner & Sudo only)
 
 /{BotCommands.SpeedCommand}: Check Internet Speed of the Host
 
 /{BotCommands.MediaInfoCommand}: Get detailed info about replied media (Only for Telegram file)
-
-/{BotCommands.ShellCommand}: Run commands in Shell (Terminal)
 
 /{BotCommands.ExecHelpCommand}: Get help for Executor module
 
