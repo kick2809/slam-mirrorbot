@@ -22,8 +22,8 @@ class MirrorStatus:
     STATUS_EXTRACTING = "Extracting...📂"
 
 
-PROGRESS_MAX_SIZE = 100 // 8
-# PROGRESS_INCOMPLETE = ['▏', '▎', '▍', '▌', '▋', '▊', '▉']
+PROGRESS_MAX_SIZE = 100 // 10
+# PROGRESS_INCOMPLETE = ['', '', '', '', '', '', '']
 
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
@@ -54,7 +54,7 @@ def get_readable_file_size(size_in_bytes) -> str:
         size_in_bytes /= 1024
         index += 1
     try:
-        return f'{round(size_in_bytes, 2)}{SIZE_UNITS[index]}'
+        return f'{round(size_in_bytes, 1)}{SIZE_UNITS[index]}'
     except IndexError:
         return 'File too large'
 
@@ -85,14 +85,14 @@ def get_progress_bar_string(status):
     else:
         p = round(completed * 100 / total)
     p = min(max(p, 0), 100)
-    cFull = p // 8
-    cPart = p % 8 - 1
+    cFull = p // 10
+    cPart = p % 11 - 1
     p_str = FINISHED_PROGRESS_STR * cFull
     if cPart >= 0:
         # p_str += PROGRESS_INCOMPLETE[cPart]
         p_str += FINISHED_PROGRESS_STR
     p_str += UNFINISHED_PROGRESS_STR * (PROGRESS_MAX_SIZE - cFull)
-    p_str = f"[{p_str}]"
+    p_str = f"{p_str}"
     return p_str
 
 
@@ -100,7 +100,7 @@ def get_readable_message():
     with download_dict_lock:
         msg = ""
         for download in list(download_dict.values()):
-            msg += f"<b>Filename:</b> <code>{download.name()}</code>"
+            msg += f"\n📚:-<code>{download.name()}</code>"
             msg += f"\n<b>Status:</b> <i>{download.status()}</i>"
             if download.status() != MirrorStatus.STATUS_ARCHIVING and download.status() != MirrorStatus.STATUS_EXTRACTING:
                 msg += f"\n<code>{get_progress_bar_string(download)} {download.progress()}</code>"
