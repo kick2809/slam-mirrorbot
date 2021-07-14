@@ -98,28 +98,37 @@ def get_progress_bar_string(status):
 
 def get_readable_message():
     with download_dict_lock:
-        msg = ""
-        for download in list(download_dict.values()):
-            msg += f"\n📚:-<code>{download.name()}</code>"
-            msg += f"\n<b>Status:</b> <i>{download.status()}</i>"
+        msg += f"\n<b>╭────── ⌊ 🙈 DOPE MIRRORING  ⌉ </b>"  
+            msg += f"\n<b>│</b>"
+            msg += f"\n├ <code>{get_progress_bar_string(download)} {download.progress()}</code>"
+            msg += f"\n<b>│</b>"
+            msg += f"\n<b>├Status:</b> <i>{download.status()}</i>"
             if download.status() != MirrorStatus.STATUS_ARCHIVING and download.status() != MirrorStatus.STATUS_EXTRACTING:
-                msg += f"\n<code>{get_progress_bar_string(download)} {download.progress()}</code>"
+                msg += f"\n├📚:<code>{download.name()[:32]}</code>"
                 if download.status() == MirrorStatus.STATUS_DOWNLOADING:
-                    msg += f"\n<b>Downloaded:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
+                    msg += f"\n<b>├Total Size 🗂:-</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
                 else:
-                    msg += f"\n<b>Uploaded:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                msg += f"\n<b>Speed:</b> {download.speed()}" \
-                        f", <b>ETA:</b> {download.eta()} "
+                    msg += f"\n<b>├Uploaded 📤:-</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
+                msg += f"\n<b>├Speed 🚀:-</b> {download.speed()}" \
+                        f"<b>├⏳:-</b> {download.eta()} "
                 # if hasattr(download, 'is_torrent'):
                 try:
-                    msg += f"\n<b>Seeders:</b> {download.aria_download().num_seeders}" \
-                        f" | <b>Peers:</b> {download.aria_download().connections}"
+                    msg += f"\n<b>├🌱:-</b> {download.aria_download().num_seeders}" \
+                        f" | <b>🍐:-</b> {download.aria_download().connections}"
                 except:
                     pass
-                msg += f'\n<b>User:</b> <a href="tg://user?id={download.message.from_user.id}">{download.message.from_user.first_name}</a> (<code>{download.message.from_user.id}</code>)'
+                if download.message.from_user.username:
+                    uname = f'@{download.message.from_user.username}'
+                else:
+                    uname = f'<a href="tg://user?id={download.message.from_user.id}">{download.message.from_user.first_name}</a>'    
+                msg += f'\n<b>├♂/♀/⚣/⚢👉</b> {uname} (<code>{download.message.from_user.id}</code>)'
             if download.status() == MirrorStatus.STATUS_DOWNLOADING:
-                msg += f"\n<b>To Stop:</b> <code>/{BotCommands.CancelMirror} {download.gid()}</code>"
-            msg += "\n\n"
+                msg += f"\n<b>├🚫:-</b> <code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+                msg += f"\n<b>│</b>"
+                msg += f"\n<b>╰─── ⌊ ⚡️ using engine aria2 ⌉ </b>"
+                msg += f"\n<b></b>"
+                msg += f"\n<b> ----------------------------------------------------------</b>"
+                msg += "\n\n"
         return msg
 
 
