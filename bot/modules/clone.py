@@ -54,6 +54,18 @@ def cloneNode(update, context):
                 Interval.append(setInterval(DOWNLOAD_STATUS_UPDATE_INTERVAL, update_all_messages))
             sendStatusMessage(update, context.bot)
             result, button = drive.clone(link)
+            with download_dict_lock:
+                del download_dict[update.message.message_id]
+                count = len(download_dict)
+            try:
+                if count == 0:
+                    Interval[0].cancel()
+                    del Interval[0]
+                    delete_all_messages()
+                else:
+                    update_all_messages()
+            except IndexError:
+                pass
         if update.message.from_user.username:
             uname = f'@{update.message.from_user.username}'
         else:
@@ -61,26 +73,12 @@ def cloneNode(update, context):
         if uname is not None:
             cc = f'\n\n♂/♀/⚣/⚢👉🏻 {uname}'
             men = f'{uname} '
-        if button == "cancelled":
-            sendMessage(men + result, context.bot, update)
-        elif button == "":
+        if button == "cancelled" or button == "":
             sendMessage(men + result, context.bot, update)
         else:
             sendMarkup(result + cc, context.bot, update, button)
-        try:
-            with download_dict_lock:
-                del download_dict[update.message.message_id]
-                count = len(download_dict)
-            if count == 0:
-                Interval[0].cancel()
-                del Interval[0]
-                delete_all_messages()
-            else:
-                update_all_messages()
-        except (IndexError, KeyError):
-            pass
     else:
-        sendMessage('Bruh Provide G-Drive Shareable/Open Link to Clone.', context.bot, update)
+        sendMessage('BRUH Provide G-Drive Shareable Link to Clone.', context.bot, update)
 
 clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(clone_handler)
