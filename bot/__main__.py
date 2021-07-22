@@ -9,7 +9,7 @@ from sys import executable
 from telegram import ParseMode, BotCommand
 from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler
-from bot import bot, dispatcher, updater, botStartTime, IMAGE_URL, IGNORE_PENDING_REQUESTS
+from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import *
@@ -57,7 +57,7 @@ Send your nudes to the bot to see how it works.
         if update.message.chat.type == "private" :
             sendMessage(f"WASSUP BISH 🙈\nSince: <code>{uptime}</code>", context.bot, update)
         else :
-            update.effective_message.reply_text(start_string, reply_markup=reply_markup)
+            sendMarkup(start_string, context.bot, update, reply_markup)
     else :
         sendMessage(f"Oops! not a Authorized user.", context.bot, update)
 
