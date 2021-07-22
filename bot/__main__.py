@@ -5,11 +5,9 @@ import os
 from pyrogram import idle
 from bot import app
 from sys import executable
-from datetime import datetime
-import pytz
-import time
 
 from telegram import ParseMode, BotCommand
+from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler
 from bot import bot, dispatcher, updater, botStartTime, IMAGE_URL, IGNORE_PENDING_REQUESTS
 from bot.helper.ext_utils import fs_utils
@@ -20,12 +18,9 @@ from .helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper import button_build
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, torrent_search, delete, speedtest, usage, mediainfo, config, count
 
-now=datetime.now(pytz.timezone('Asia/Kolkata'))
-
 
 def stats(update, context):
     currentTime = get_readable_time(time.time() - botStartTime)
-    current = now.strftime('%Y/%m/%d %I:%M:%S %p')
     total, used, free = shutil.disk_usage('.')
     total = get_readable_file_size(total)
     used = get_readable_file_size(used)
@@ -36,7 +31,6 @@ def stats(update, context):
     memory = psutil.virtual_memory().percent
     disk = psutil.disk_usage('/').percent
     stats = f'<b>Bot Uptime:</b> {currentTime}\n' \
-            f'<b>Start Time:</b> {current}\n' \
             f'<b>Total Disk Space:</b> {total}\n' \
             f'<b>Used:</b> {used}  ' \
             f'<b>Free:</b> {free}\n\n' \
@@ -45,7 +39,7 @@ def stats(update, context):
             f'<b>CPU:</b> {cpuUsage}%\n' \
             f'<b>RAM:</b> {memory}%\n' \
             f'<b>DISK:</b> {disk}%'
-    update.effective_message.reply_photo(IMAGE_URL, stats, parse_mode=ParseMode.HTML)
+    sendMessage(stats, context.bot, update)
 
 
 def start(update, context):
@@ -63,7 +57,7 @@ Send your nudes to the bot to see how it works.
         if update.message.chat.type == "private" :
             sendMessage(f"WASSUP BISH 🙈\nSince: <code>{uptime}</code>", context.bot, update)
         else :
-            update.effective_message.reply_photo(IMAGE_URL, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
+            update.effective_message.reply_text(start_string, reply_markup=reply_markup)
     else :
         sendMessage(f"Oops! not a Authorized user.", context.bot, update)
 
@@ -210,12 +204,19 @@ BotCommand(f'{BotCommands.TsHelpCommand}','Get help for Torrent search module')]
 
 def main():
     fs_utils.start_cleanup()
-    # Check if the bot is restarting
-    if os.path.isfile(".restartmsg"):
-        with open(".restartmsg") as f:
-            chat_id, msg_id = map(int, f)
-        bot.edit_message_text("Restarted successfully!", chat_id, msg_id)
-        os.remove(".restartmsg")
+    # Heroku restarted
+    GROUP_ID = "-1001497477263"
+    kie = datetime.now(pytz.timezone('Asia/Kolkata'))
+    jam = kie.strftime('%Y/%m/%d %I:%M%P')
+    if GROUP_ID is not None and isinstance(GROUP_ID, str):        
+        try:
+            dispatcher.bot.sendMessage(f"{GROUP_ID}", f"♻️ BOT GOT RESTARTED.\n      {jam}")
+        except Unauthorized:
+            LOGGER.warning(
+                "Bot isnt able to send message to support_chat, go and check!"
+            )
+        except BadRequest as e:
+            LOGGER.warning(e.message)
     bot.set_my_commands(botcmds)
 
     start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
