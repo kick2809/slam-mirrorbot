@@ -204,19 +204,12 @@ BotCommand(f'{BotCommands.TsHelpCommand}','Get help for Torrent search module')]
 
 def main():
     fs_utils.start_cleanup()
-    # Heroku restarted
-    GROUP_ID = "-1001497477263"
-    kie = datetime.now(pytz.timezone('Asia/Kolkata'))
-    jam = kie.strftime('%Y/%m/%d %I:%M%P')
-    if GROUP_ID is not None and isinstance(GROUP_ID, str):        
-        try:
-            dispatcher.bot.sendMessage(f"{GROUP_ID}", f"♻️ BOT GOT RESTARTED.\n      {jam}")
-        except Unauthorized:
-            LOGGER.warning(
-                "Bot isnt able to send message to support_chat, go and check!"
-            )
-        except BadRequest as e:
-            LOGGER.warning(e.message)
+    # Check if the bot is restarting
+    if os.path.isfile(".restartmsg"):
+        with open(".restartmsg") as f:
+            chat_id, msg_id = map(int, f)
+        bot.edit_message_text("Restarted successfully!", chat_id, msg_id)
+        os.remove(".restartmsg")
     bot.set_my_commands(botcmds)
 
     start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
