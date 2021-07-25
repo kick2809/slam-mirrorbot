@@ -3,7 +3,9 @@ import re
 import threading
 import time
 import math
+import textwrap
 
+from collections import UserString
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot import dispatcher, download_dict, download_dict_lock, STATUS_LIMIT
 from telegram import InlineKeyboardMarkup
@@ -18,6 +20,7 @@ URL_REGEX = r"(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+"
 
 COUNT = 0
 PAGE_NO = 1
+READABLE_MESSAGE_MAX_WIDTH = 40
 
 
 class MirrorStatus:
@@ -28,6 +31,63 @@ class MirrorStatus:
     STATUS_FAILED = "Failed 🚫. Cleaning Download..."
     STATUS_ARCHIVING = "Archiving...🔐"
     STATUS_EXTRACTING = "Extracting...📂"
+
+
+class Placeholder(UserString):
+
+    def __len__(self):
+        return 0
+
+class _WrapperMeta(type):
+    
+    def __new__(mcs, *args, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
+        if cls.TAG.startswith("<") or cls.TAG.endswith(">"):
+            raise ValueError
+        cls.PREFIX = "<{}>".format(cls.TAG)
+        cls.SUFFIX = "</{}>".format(cls.TAG)
+        return cls
+
+class _BaseWrapper(metaclass=_WrapperMeta):
+    TAG = str()
+    PREFIX = str()
+    SUFFIX = str()
+    PREFIX_PLACEHOLDER = Placeholder("__wrapper_prefix_placeholder__")
+    SUFFIX_PLACEHOLDER = Placeholder("__wrapper_suffix_placeholder__")
+
+    @classmethod
+    def wrap(cls, element):
+        if str(cls.PREFIX_PLACEHOLDER) not in element:
+            element = "{}{}".format(cls.PREFIX, element)
+        if str(cls.SUFFIX_PLACEHOLDER) not in element:
+            element = "{}{}".format(element, cls.SUFFIX_PLACEHOLDER)
+        return element.replace(
+            str(cls.PREFIX_PLACEHOLDER), cls.PREFIX
+        ).replace(
+            str(cls.SUFFIX_PLACEHOLDER), cls.SUFFIX
+        )
+
+class CodeWrapper(_BaseWrapper):
+    TAG = "code"
+
+
+class BoldWrapper(_BaseWrapper):
+    TAG = "b"
+
+
+def wrapped_element(heading, element, wrapper=CodeWrapper, base=BoldWrapper.wrap("├"), support=BoldWrapper.wrap("│")):
+    first_prefix = "{}{}".format(base, heading)
+    wrapped = iter(textwrap.wrap(
+        "{}{}".format(first_prefix, element), READABLE_MESSAGE_MAX_WIDTH
+    ))
+    try:
+        first = next(wrapped)
+    except StopIteration:
+        return str()
+    rv = "{}{}".format(first_prefix, wrapper.wrap(first.replace(first_prefix, str())))
+    for e in wrapped:
+        rv += "\n{} {}".format(support, wrapper.wrap(e))
+    return rv
 
 
 PROGRESS_MAX_SIZE = 100 // 9
@@ -117,10 +177,10 @@ def get_readable_message():
             INDEX += 1
             if INDEX > COUNT:
                 msg += f"\n<b>╭──────── ⌊ </b> <i>{download.status()}</i>"
-                msg += f"\n<b>│</b>
+                msg += f"\n<b>│</b>"
                 msg += f"\n├<code>{get_progress_bar_string(download)} {download.progress()}</code>"
-                msg += f"\n<b>│</b>
-                msg += f"<b>├📚:</b> <code>{download.name()}</code>"
+                msg += f"\n<b>│</b>"
+                msg += wrapped_element("📚 Filename: ", download.name())
                 if download.status() != MirrorStatus.STATUS_ARCHIVING and download.status() != MirrorStatus.STATUS_EXTRACTING:
                     if download.status() == MirrorStatus.STATUS_DOWNLOADING:
                         msg += f"\n<b>├🗂:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
