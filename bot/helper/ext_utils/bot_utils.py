@@ -34,7 +34,6 @@ class MirrorStatus:
 
 
 class Placeholder(UserString):
-    PLACEHOLDER = str()
 
     def __len__(self):
         return 0
